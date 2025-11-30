@@ -81,9 +81,10 @@
             <artifactId>aspectjweaver</artifactId>
         </dependency>
 
+        <!-- 更新Knife4j依赖以适配Spring Boot 3.x -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-spring-boot-starter</artifactId>
+            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>
@@ -115,6 +116,7 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
         </dependency>
+
     </dependencies>
 
     <build>
