@@ -28,6 +28,11 @@ logging:
         service: info
         controller: info
 
+knife4j:
+  production: false
+  basic:
+    enable: false
+
 sky:
   jwt:
     # 设置jwt签名加密时使用的秘钥
