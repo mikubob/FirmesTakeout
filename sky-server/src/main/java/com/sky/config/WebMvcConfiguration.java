@@ -1,12 +1,16 @@
 package com.sky.config;
 
 import com.sky.interceptor.JwtTokenAdminInterceptor;
+import com.sky.json.JacksonObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+
+import java.util.List;
 
 /**
  * 配置类，注册web层相关组件
@@ -32,6 +36,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 
     /**
      * 设置静态资源映射
+     *
      * @param registry
      */
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -40,5 +45,23 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
         registry.addResourceHandler("/swagger-resources/**").addResourceLocations("classpath:/META-INF/resources/swagger-resources/");
         registry.addResourceHandler("/v3/api-docs/**").addResourceLocations("classpath:/META-INF/resources/v3/api-docs/");
+    }
+
+    /**
+     * 扩展Spring MVC框架的消息转化器
+     * @param converters
+     */
+    protected void extendMessageConverters(List<org.springframework.http.converter.HttpMessageConverter<?>> converters) {
+        log.info("扩展消息转换器...");
+        
+        // 先移除默认的Jackson消息转换器，避免重复
+        converters.removeIf(converter -> converter instanceof org.springframework.http.converter.json.MappingJackson2HttpMessageConverter);
+        
+        //创建一个消息转换器对象
+        org.springframework.http.converter.json.MappingJackson2HttpMessageConverter converter = new org.springframework.http.converter.json.MappingJackson2HttpMessageConverter();
+        //需要为消息转换器设置一个对象转换器，对象转换器可以将Java对象序列化为json数据
+        converter.setObjectMapper(new com.sky.json.JacksonObjectMapper());
+        //将自己的消息转化器加入容器中
+        converters.add(converter);
     }
 }
