@@ -46,3 +46,7 @@ sky:
     admin-ttl: 7200000
     # 设置前端传递过来的令牌名称
     admin-token-name: token
+  alioss:
+    endpoint: ${ALI_OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+    bucket-name: ${ALI_OSS_BUCKET_NAME:skytake-out-xuan}
+    region: ${ALI_OSS_REGION:cn-beijing}

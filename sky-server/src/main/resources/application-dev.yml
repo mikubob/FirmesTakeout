@@ -6,3 +6,8 @@ sky:
     database: sky_take_out
     username: root
     password: 1234
+
+  alioss:
+    endpoint: ${ALI_OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+    bucket-name: ${ALI_OSS_BUCKET_NAME:skytake-out-xuan}
+    region: ${ALI_OSS_REGION:cn-beijing}
