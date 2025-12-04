@@ -4,6 +4,9 @@ import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.common.auth.CredentialsProviderFactory;
 import com.aliyun.oss.common.auth.EnvironmentVariableCredentialsProvider;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,21 +15,15 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class AliOssUtil {
     private static final Logger log = LoggerFactory.getLogger(AliOssUtil.class);
     
     private String endpoint;
     private String bucketName;
     private String region = "cn-beijing"; // 默认region
-
-    public AliOssUtil() {
-    }
-    
-    public AliOssUtil(String endpoint, String bucketName, String region) {
-        this.endpoint = endpoint;
-        this.bucketName = bucketName;
-        this.region = region;
-    }
 
     /**
      * 文件上传
@@ -69,30 +66,5 @@ public class AliOssUtil {
                 ossClient.shutdown();
             }
         }
-    }
-    
-    // Getter和Setter方法
-    public String getEndpoint() {
-        return endpoint;
-    }
-
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
-    }
-
-    public String getBucketName() {
-        return bucketName;
-    }
-
-    public void setBucketName(String bucketName) {
-        this.bucketName = bucketName;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
     }
 }

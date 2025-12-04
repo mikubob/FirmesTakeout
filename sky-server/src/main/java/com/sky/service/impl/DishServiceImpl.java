@@ -23,7 +23,14 @@ public class DishServiceImpl implements DishService {
      */
     @Override
     public void saveWithFlavor(DishDTO dishDTO) {
-        Dish dish=new Dish();
+        Dish dish = new Dish();
+        //拷贝属性
+        dish.setName(dishDTO.getName());
+        dish.setCategoryId(dishDTO.getCategoryId());
+        dish.setPrice(dishDTO.getPrice());
+        dish.setImage(dishDTO.getImage());
+        dish.setDescription(dishDTO.getDescription());
+        dish.setStatus(dishDTO.getStatus());
 
         //向菜品表中插入一条数据
         dishMapper.insert(dish);
