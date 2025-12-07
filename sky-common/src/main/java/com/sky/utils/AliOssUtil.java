@@ -67,4 +67,34 @@ public class AliOssUtil {
             }
         }
     }
+    
+    /**
+     * 删除OSS上的文件
+     * @param objectName 文件在OSS上的路径
+     * @throws Exception 删除异常
+     */
+    public void delete(String objectName) throws Exception {
+        // 从环境变量中获取访问凭证，运行代码前，确保已设置环境变量OSS_ACCESS_KEY_ID和OSS_ACCESS_KEY_SECRET
+        EnvironmentVariableCredentialsProvider credentialsProvider = CredentialsProviderFactory
+                .newEnvironmentVariableCredentialsProvider();
+        
+        // 检查必要参数
+        if (endpoint == null || bucketName == null) {
+            throw new IllegalArgumentException("OSS endpoint 或 bucketName 未配置");
+        }
+        
+        // 创建OSSClient实例
+        OSS ossClient = new OSSClientBuilder()
+                .build(endpoint, credentialsProvider);
+                
+        try {
+            // 删除文件
+            ossClient.deleteObject(bucketName, objectName);
+            log.info("文件删除成功，文件路径: {}", objectName);
+        } finally {
+            if (ossClient != null) {
+                ossClient.shutdown();
+            }
+        }
+    }
 }
