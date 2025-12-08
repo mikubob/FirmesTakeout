@@ -8,6 +8,9 @@
         values (#{categoryId}, #{name}, #{price}, #{status}, #{description}, #{image}, #{createTime}, #{updateTime},
                 #{createUser}, #{updateUser})
     </insert>
+    <delete id="deleteById">
+        delete from setmeal where id = #{id}
+    </delete>
     <select id="countByCategoryId" resultType="java.lang.Integer">
         select count(1) from setmeal where category_id=#{id}
     </select>
@@ -31,5 +34,8 @@
             </if>
         </where>
         order by s.update_time desc
+    </select>
+    <select id="getById" resultType="com.sky.entity.Setmeal">
+        select * from setmeal where id = #{id}
     </select>
 </mapper>
