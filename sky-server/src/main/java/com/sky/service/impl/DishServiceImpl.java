@@ -212,6 +212,11 @@ public class DishServiceImpl implements DishService {
         return dishMapper.list(dish);
     }
 
+    /**
+     * 菜品的起售和停售（关联套餐进行操作）
+     * @param status
+     * @param id
+     */
     @Override
     public void startOrStop(Integer status, Long id) {
         //获取当前菜品的套餐ID

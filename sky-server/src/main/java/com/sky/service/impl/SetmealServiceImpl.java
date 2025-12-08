@@ -16,12 +16,15 @@ import com.sky.mapper.SetMealDishMapper;
 import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.service.setmealservice;
+import com.sky.utils.AliOssUtil;
 import com.sky.vo.SetmealVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 @Service
@@ -33,6 +36,8 @@ public class SetmealServiceImpl implements setmealservice {
     private SetMealDishMapper setMealDishMapper;
     @Autowired
     private DishMapper dishMapper;
+    @Autowired
+    private AliOssUtil aliOssUtil;
 
     /**
      * 新增套餐，同时增加套餐和菜品关系
@@ -86,6 +91,20 @@ public class SetmealServiceImpl implements setmealservice {
             }
         });
         ids.forEach(setmealId->{
+            // 先删除套餐图片
+            Setmeal setmeal = setmealMapper.getById(setmealId);
+            if (setmeal != null && setmeal.getImage() != null && !setmeal.getImage().isEmpty()) {
+                try {
+                    String objectName = getObjectKeyFromUrl(setmeal.getImage());
+                    if (objectName != null) {
+                        aliOssUtil.delete(objectName);
+                    }
+                } catch (Exception e) {
+                    // 记录日志但不中断删除操作
+                    e.printStackTrace();
+                }
+            }
+            
             //删除套餐表中的数据
             setmealMapper.deleteById(setmealId);
             //删除套餐关系表中的数据
@@ -116,6 +135,24 @@ public class SetmealServiceImpl implements setmealservice {
     @Transactional
     @Override
     public void update(SetmealDTO setmealDTO) {
+        // 先获取原始套餐信息
+        Setmeal originalSetmeal = setmealMapper.getById(setmealDTO.getId());
+
+        // 检查是否需要删除原图片
+        if (originalSetmeal != null && originalSetmeal.getImage() != null &&
+            setmealDTO.getImage() != null && !originalSetmeal.getImage().equals(setmealDTO.getImage())) {
+            // 图片发生了变化，需要删除原图片
+            try {
+                String objectName = getObjectKeyFromUrl(originalSetmeal.getImage());
+                if (objectName != null) {
+                    aliOssUtil.delete(objectName);
+                }
+            } catch (Exception e) {
+                // 记录日志但不中断操作
+                e.printStackTrace();
+            }
+        }
+        
         Setmeal setmeal=new Setmeal();
         BeanUtils.copyProperties(setmealDTO,setmeal);
 
@@ -142,7 +179,7 @@ public class SetmealServiceImpl implements setmealservice {
      */
     @Override
     public void startOrStop(Integer status, Long id) {
-        //起售套餐时，判断套餐内是否有停售菜品，有停售菜品提示“套餐内包含未起售菜品，无法起售”
+        //起售套餐时，判断套餐内是否有停售菜品，有停售菜品提示"套餐内包含未起售菜品，无法起售"
         if(status==StatusConstant.ENABLE){
             //select a.* from dish a left join setmeal_dish b on a.id = b.dish_id where b.setmeal_id = ?
             List<Dish> dishList=dishMapper.getBySetmealId(id);
@@ -159,5 +196,27 @@ public class SetmealServiceImpl implements setmealservice {
                 .status(status)
                 .build();
         setmealMapper.update(setmeal);
+    }
+    
+    /**
+     * 从完整的URL中提取OSS对象键
+     *
+     * @param imageUrl 图片的完整URL
+     * @return OSS对象键
+     * @throws MalformedURLException
+     */
+    private String getObjectKeyFromUrl(String imageUrl) throws MalformedURLException {
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            return null;
+        }
+
+        // 解析URL并提取路径部分作为对象键
+        URL url = new URL(imageUrl);
+        String path = url.getPath();
+        // 移除开头的斜杠
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        return path;
     }
 }
