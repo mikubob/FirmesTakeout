@@ -38,6 +38,7 @@ public class SetmealServiceImpl implements setmealservice {
      * 新增套餐，同时增加套餐和菜品关系
      * @param setmealDTO
      */
+    @Transactional
     @Override
     public void saveWithDish(SetmealDTO setmealDTO) {
         Setmeal setmeal = new Setmeal();
@@ -70,6 +71,7 @@ public class SetmealServiceImpl implements setmealservice {
      * 批量删除套餐
      * @param ids
      */
+    @Transactional
     @Override
     public void deleteBatch(List<Long> ids) {
         ids.forEach(id->{

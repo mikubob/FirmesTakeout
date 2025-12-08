@@ -19,6 +19,7 @@ import com.sky.service.EmployeeService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import java.time.LocalDateTime;
@@ -72,6 +73,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      *
      * @param employeeDTO
      */
+    @Transactional
     @Override
     public void save(EmployeeDTO employeeDTO) {
         Employee employee = new Employee();
@@ -123,6 +125,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param status
      * @param id
      */
+    @Override
     public void startOrStop(Integer status, Long id) {
         Employee employee = Employee.builder()
                 .status(status)
@@ -138,6 +141,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param id
      * @return
      */
+    @Override
     public Employee getById(Long id) {
         Employee employee = employeeMapper.getById(id);
         employee.setPassword("****");
@@ -149,6 +153,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      *
      * @param employeeDTO
      */
+    @Transactional
     @Override
     public void update(EmployeeDTO employeeDTO) {
         Employee employee = new Employee();

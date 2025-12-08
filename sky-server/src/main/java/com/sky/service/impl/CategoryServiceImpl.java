@@ -17,6 +17,7 @@ import com.sky.service.CategoryService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -64,6 +65,7 @@ public class CategoryServiceImpl implements CategoryService {
      *
      * @param id
      */
+    @Transactional
     @Override
     public void deleteById(long id) {
         //查询当前分类是否关联了菜品，如果关联了就抛出业务异常
@@ -84,6 +86,7 @@ public class CategoryServiceImpl implements CategoryService {
      *
      * @param categoryDTO
      */
+    @Transactional
     @Override
     public void update(CategoryDTO categoryDTO) {
         Category category = new Category();
