@@ -76,6 +76,10 @@ public class SetmealServiceImpl implements setmealservice {
     public void deleteBatch(List<Long> ids) {
         ids.forEach(id->{
             Setmeal setmeal = setmealMapper.getById(id);
+            // 检查套餐是否存在
+            if (setmeal == null) {
+                throw new DeletionNotAllowedException(MessageConstant.SETMEAL_ON_SALE);
+            }
             if(StatusConstant.ENABLE==setmeal.getStatus()){
                 //起售中的套餐不能被删除
                 throw new DeletionNotAllowedException(MessageConstant.SETMEAL_ON_SALE);
