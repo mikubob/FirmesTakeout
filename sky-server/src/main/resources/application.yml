@@ -16,6 +16,12 @@ spring:
     time-zone: GMT+8
     serialization:
       write-dates-as-timestamps: false
+  data:
+    redis:
+      host: ${sky.redis.host}
+      database: ${sky.redis.database}
+      password: ${sky.redis.password}
+      port: ${sky.redis.port}
 
 mybatis:
   #mapper配置文件
