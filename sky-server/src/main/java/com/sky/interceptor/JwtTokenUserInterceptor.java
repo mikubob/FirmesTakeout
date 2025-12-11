@@ -10,11 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * jwt令牌校验的拦截器（用户端）
+ * jwt令牌校验的拦截器
  */
 @Component
 @Slf4j
@@ -47,7 +48,7 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
             log.info("jwt校验:{}", token);
             Claims claims = JwtUtil.parseJWT(jwtProperties.getUserSecretKey(), token);
             Long userId = Long.valueOf(claims.get(JwtClaimsConstant.USER_ID).toString());
-            log.info("当前用户id：{}", userId);
+            log.info("当前用户的id：{}", userId);
             BaseContext.setCurrentId(userId);
             //3、通过，放行
             return true;
@@ -56,18 +57,5 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
             response.setStatus(401);
             return false;
         }
-    }
-    
-    /**
-     * 请求处理完成后清理ThreadLocal
-     * @param request
-     * @param response
-     * @param handler
-     * @param ex
-     * @throws Exception
-     */
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        BaseContext.removeCurrentId();
     }
 }

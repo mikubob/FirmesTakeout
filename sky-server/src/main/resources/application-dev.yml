@@ -16,3 +16,8 @@ sky:
     endpoint: ${ALI_OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
     bucket-name: ${ALI_OSS_BUCKET_NAME:skytake-out-xuan}
     region: ${ALI_OSS_REGION:cn-beijing}
+
+
+  wechat:
+    appid: ${WX_MINI_APPID}  # 引用系统环境变量WX_MINI_APPID
+    secret: ${WX_MINI_SECRET} # 引用系统环境变量WX_MINI_SECRET

@@ -31,7 +31,7 @@
         <!-- 更新Knife4j版本以适配Spring Boot 3.x -->
         <knife4j>4.3.0</knife4j>
         <aspectj>1.9.4</aspectj>
-        <jjwt>0.9.1</jjwt>
+        <jjwt>0.11.5</jjwt>
         <jaxb-api>2.3.1</jaxb-api>
         <poi>3.16</poi>
     </properties>

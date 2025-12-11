@@ -47,12 +47,18 @@ knife4j:
 sky:
   jwt:
     # 设置jwt签名加密时使用的秘钥
-    admin-secret-key: itcast
+    admin-secret-key: itcast1234567890abcdefg!@#$%^&*()_+
     # 设置jwt过期时间
     admin-ttl: 7200000
     # 设置前端传递过来的令牌名称
     admin-token-name: token
+    user-secret-key: itheima1234567890abcdefg!@#$%^&*()_+
+    user-ttl: 7200000
+    user-token-name: authentication
   alioss:
     endpoint: ${ALI_OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
     bucket-name: ${ALI_OSS_BUCKET_NAME:skytake-out-xuan}
     region: ${ALI_OSS_REGION:cn-beijing}
+  wechat:
+    appid: ${sky.wechat.appid}
+    secret: ${sky.wechat.secret}
