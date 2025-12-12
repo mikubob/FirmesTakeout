@@ -4,7 +4,7 @@ import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
-import com.sky.service.setmealservice;
+import com.sky.service.SetmealService;
 import com.sky.vo.SetmealVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,7 +21,7 @@ import java.util.List;
 public class SetmealController {
 
     @Autowired
-    private setmealservice setmealService;
+    private SetmealService setmealService;
 
     /**
      * 新增套餐

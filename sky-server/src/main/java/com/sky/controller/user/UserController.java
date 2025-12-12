@@ -23,7 +23,7 @@ import java.util.Map;
 @RestController
 @Slf4j
 @RequestMapping("/user/user")
-@Tag(name = "C端用户相关接口")
+@Tag(name = "用户端-相关接口")
 public class UserController {
 
     @Autowired
