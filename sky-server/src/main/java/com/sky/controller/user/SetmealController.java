@@ -34,7 +34,7 @@ public class SetmealController {
         log.info("根据分类id查询套餐，{}",categoryId);
         Setmeal setmeal = Setmeal.builder()
                 .status(StatusConstant.ENABLE)
-                .id(categoryId)
+                .categoryId(categoryId)
                 .build();
         return Result.success(setmealService.list(setmeal));
     }
