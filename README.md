@@ -19,7 +19,7 @@
 - Redis 缓存
 - JWT Token 认证
 - WebSocket 实时通信
-- Knife4j API 文档
+- Knife4j API 文档 (适配 Spring Boot 3.x)
 - 阿里云 OSS 对象存储
 - 微信支付接口集成
 
@@ -112,9 +112,12 @@ git clone <repository-url>
 ```
 
 3. 修改配置文件：
-```yaml
-# application-dev.yml
-# 配置数据库连接、Redis连接、JWT密钥等
+```bash
+# 复制配置文件模板
+cp sky-server/src/main/resources/application-dev.yml.example sky-server/src/main/resources/application-dev.yml
+
+# 编辑配置文件，填写数据库、Redis等配置信息
+vim sky-server/src/main/resources/application-dev.yml
 ```
 
 4. 启动后端服务：
@@ -152,6 +155,10 @@ npm run dev
 3. JWT密钥和过期时间配置
 4. 阿里云OSS配置
 5. 微信支付配置
+
+配置文件位于 `sky-server/src/main/resources/` 目录下：
+- application.yml - 主配置文件
+- application-dev.yml - 开发环境配置文件
 
 ## 部署说明
 
