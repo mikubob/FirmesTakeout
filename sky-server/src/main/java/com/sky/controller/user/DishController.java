@@ -21,7 +21,7 @@ import java.util.List;
 @Tag(name = "用户端-菜品浏览接口")
 public class DishController {
     @Autowired
-    DishService dishService;
+    private DishService dishService;
 
     /**
      * 根据分类id查询菜品

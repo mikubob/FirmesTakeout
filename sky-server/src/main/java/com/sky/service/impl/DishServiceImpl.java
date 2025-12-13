@@ -21,6 +21,8 @@ import com.sky.vo.DishVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanEntry;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +51,7 @@ public class DishServiceImpl implements DishService {
      * @param dishDTO
      */
     @Transactional
+    @CacheEvict(value = "dishCache", key = "#dishDTO.categoryId")
     @Override
     public void saveWithFlavor(DishDTO dishDTO) {
         Dish dish = new Dish();
@@ -89,6 +92,7 @@ public class DishServiceImpl implements DishService {
      * @param ids
      */
     @Transactional
+    @CacheEvict(value = "dishCache", allEntries = true)
     @Override
     public void deleteBatch(List<Long> ids) {
         //判断当前菜品是否能够删除---是否存在启售中的菜品？？
@@ -153,6 +157,7 @@ public class DishServiceImpl implements DishService {
      * @param dishDTO
      */
     @Transactional
+    @CacheEvict(value = "dishCache", allEntries = true)
     @Override
     public void updateWithFlavor(DishDTO dishDTO) {
         // 检查ID是否为空
@@ -219,6 +224,7 @@ public class DishServiceImpl implements DishService {
      * @param id
      */
     @Override
+    @CacheEvict(value = "dishCache", allEntries = true)
     public void startOrStop(Integer status, Long id) {
         //获取当前菜品的套餐ID
         List<Long> dishId=new ArrayList<>();
@@ -249,6 +255,7 @@ public class DishServiceImpl implements DishService {
      * @return
      */
     @Override
+    @Cacheable(value = "dishCache", key = "#dish.categoryId")
     public List<DishVO> listWithFlavor(Dish dish) {
         List<Dish> dishList=dishMapper.list(dish);
         List<DishVO> dishVOList=new ArrayList<>();
