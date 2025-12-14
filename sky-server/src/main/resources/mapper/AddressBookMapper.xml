@@ -2,13 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.sky.mapper.AddressBookMapper">
     <insert id="insert">
-       /*"insert into address_book" +
-            "        (user_id, consignee, phone, sex, province_code, province_name, city_code, city_name, district_code," +
-            "         district_name, detail, label, is_default)" +
-            "        values (#{userId}, #{consignee}, #{phone}, #{sex}, #{provinceCode}, #{provinceName}, #{cityCode}, #{cityName}," +
-            "                #{districtCode}, #{districtName}, #{detail}, #{label}, #{isDefault})"*/
-            insert into address_book (user_id, consignee, phone, sex, province_code, province_name, city_code, city_name, district_code, district_name, detail, label, is_default)
-            values (#{userId}, #{consignee}, #{phone}, #{sex}, #{provinceCode}, #{provinceName}, #{cityCode}, #{cityName}, #{districtCode}, #{districtName}, #{detail}, #{label}, #{isDefault})
+        insert into address_book (user_id, consignee, phone, sex, province_code, province_name, city_code, city_name, district_code, district_name, detail, label, is_default)
+        values (#{userId}, #{consignee}, #{phone}, #{sex}, #{provinceCode}, #{provinceName}, #{cityCode}, #{cityName}, #{districtCode}, #{districtName}, #{detail}, #{label}, #{isDefault})
     </insert>
     <delete id="deleteById">
         delete from address_book where id = #{id}
@@ -57,7 +52,6 @@
         where id = #{id}
     </update>
     <update id="updateIsDefaultByUserId">
-        /*"update address_book set is_default = #{isDefault} where user_id = #{userId}"*/
         update address_book set is_default = #{isDefault} where user_id = #{userId}
     </update>
 
