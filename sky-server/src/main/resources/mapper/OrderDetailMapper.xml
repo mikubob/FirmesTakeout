@@ -11,4 +11,7 @@
             #{orderDetail.number}, #{orderDetail.amount})
         </foreach>
     </insert>
+    <select id="getByOrderId" resultType="com.sky.entity.OrderDetail">
+        select * from order_detail where order_id = #{orderId}
+    </select>
 </mapper>
