@@ -76,6 +76,7 @@ public class OrderController {
     @GetMapping("/orderDetail/{id}")
     @Operation(summary = "查询订单详情")
     public Result<OrderVO> details(@PathVariable("id") Long id) {
+        log.info("查询订单详情：{}", id);
         OrderVO orderVO = orderService.details(id);
         return Result.success(orderVO);
     }
