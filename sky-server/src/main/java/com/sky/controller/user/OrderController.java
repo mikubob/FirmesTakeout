@@ -56,14 +56,16 @@ public class OrderController {
 
     /**
      * 历史订单查询
-     * @param ordersPageQueryDTO
+     *
+     * @param page
+     * @param pageSize
+     * @param status   订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消
      * @return
      */
     @GetMapping("/historyOrders")
     @Operation(summary = "历史订单查询")
-    public Result<PageResult> historyOrders(OrdersPageQueryDTO ordersPageQueryDTO) {
-        log.info("历史订单查询：{}", ordersPageQueryDTO);
-        PageResult pageResult = orderService.historyOrders(ordersPageQueryDTO);
+    public Result<PageResult> page(int page, int pageSize, Integer status) {
+        PageResult pageResult = orderService.pageQuery4User(page, pageSize, status);
         return Result.success(pageResult);
     }
 

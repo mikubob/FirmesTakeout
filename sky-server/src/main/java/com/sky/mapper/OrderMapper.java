@@ -37,5 +37,12 @@ public interface OrderMapper {
      * @param ordersPageQueryDTO
      * @return
      */
-    Page<OrderVO> pageQuery(OrdersPageQueryDTO ordersPageQueryDTO);
+    Page<Orders> pageQuery(OrdersPageQueryDTO ordersPageQueryDTO);
+
+    /**
+     * 根据状态统计订单数量
+     * @param toBeConfirmed
+     * @return
+     */
+    Integer countStatus(Integer toBeConfirmed);
 }
