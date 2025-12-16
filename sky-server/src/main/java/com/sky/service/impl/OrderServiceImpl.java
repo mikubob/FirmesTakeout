@@ -87,6 +87,12 @@ public class OrderServiceImpl implements OrderService {
         orders.setPhone(addressBook.getPhone());
         //收获人
         orders.setConsignee(addressBook.getConsignee());
+        //地址信息
+        String address = addressBook.getProvinceName() + 
+                        addressBook.getCityName() + 
+                        addressBook.getDistrictName() + 
+                        addressBook.getDetail();
+        orders.setAddress(address);
         //用户id
         orders.setUserId(userId);
 
@@ -202,10 +208,27 @@ public class OrderServiceImpl implements OrderService {
         List<OrderVO> list =new ArrayList<>();
 
         for (Orders orders : page) {
+            // 获取订单详情
             List<OrderDetail> orderDetails = orderDetailMapper.getByOrderId(orders.getId());
+            
+            // 构造OrderVO
             OrderVO orderVO = new OrderVO();
             BeanUtils.copyProperties(orders,orderVO);
             orderVO.setOrderDetailList(orderDetails);
+            
+            // 如果有地址id，则从地址簿中获取详细地址信息
+            if (orders.getAddressBookId() != null) {
+                AddressBook addressBook = addressBookMapper.getById(orders.getAddressBookId());
+                if (addressBook != null) {
+                    // 拼接完整地址信息
+                    String address = addressBook.getProvinceName() + 
+                                   addressBook.getCityName() + 
+                                   addressBook.getDistrictName() + 
+                                   addressBook.getDetail();
+                    orderVO.setAddress(address);
+                }
+            }
+            
             list.add(orderVO);
         }
 
