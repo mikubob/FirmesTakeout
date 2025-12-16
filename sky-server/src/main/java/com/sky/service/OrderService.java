@@ -37,14 +37,6 @@ public interface OrderService {
      */
     OrderVO details(Long id);
 
-    /**
-     * 用户端订单分页查询
-     * @param page
-     * @param pageSize
-     * @param status
-     * @return
-     */
-    PageResult pageQuery4User(int page, int pageSize, Integer status);
 
     /**
      * 用户取消订单
@@ -70,4 +62,11 @@ public interface OrderService {
      * @return
      */
     OrderStatisticsVO statistics();
+
+    /**
+     * 分页查询订单
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    PageResult pageQuery4User(OrdersPageQueryDTO ordersPageQueryDTO);
 }
