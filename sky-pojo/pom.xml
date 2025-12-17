@@ -24,6 +24,11 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
         </dependency>
+        <!-- 添加Spring Context依赖以支持@DateTimeFormat注解 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
         <!-- 添加Jakarta EE注解支持 -->
         <dependency>
             <groupId>jakarta.validation</groupId>
