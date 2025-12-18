@@ -132,22 +132,9 @@ public class OrderServiceImpl implements OrderService {
         if (ordersPaymentDTO.getOrderNumber() == null || ordersPaymentDTO.getOrderNumber().isEmpty()) {
             log.warn("订单号为空，尝试查找用户最新待支付订单");
             // 如果订单号为空，尝试查找当前用户最新的待支付订单
-            Long userId = BaseContext.getCurrentId();
-            OrdersPageQueryDTO queryDTO = new OrdersPageQueryDTO();
-            queryDTO.setUserId(userId);
-            queryDTO.setStatus(Orders.PENDING_PAYMENT); // 待付款状态
-            queryDTO.setPage(1);
-            queryDTO.setPageSize(1);
-            
-            Page<Orders> page = orderMapper.pageQuery(queryDTO);
-            if (page != null && !page.isEmpty()) {
-                Orders latestOrder = page.get(0);
-                ordersPaymentDTO.setOrderNumber(latestOrder.getNumber());
-                log.info("找到用户最新待支付订单，订单号: {}", latestOrder.getNumber());
-            } else {
-                log.error("未找到用户待支付订单");
-                throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
-            }
+            Orders latestOrder = this.findLatestOrder(Orders.PENDING_PAYMENT, BaseContext.getCurrentId());
+            ordersPaymentDTO.setOrderNumber(latestOrder.getNumber());
+            log.info("找到用户最新待支付订单，订单号: {}", latestOrder.getNumber());
         }
         
         // 根据订单号查询订单信息
@@ -199,6 +186,40 @@ public class OrderServiceImpl implements OrderService {
 
         orderMapper.update(orders);
     }
+    
+    /**
+     * 查找最新的订单
+     * 
+     * @param status 订单状态 null表示不限制状态
+     * @param userId 用户ID null表示不限制用户
+     * @return 最新的订单
+     */
+    private Orders findLatestOrder(Integer status, Long userId) {
+        OrdersPageQueryDTO queryDTO = new OrdersPageQueryDTO();
+        queryDTO.setStatus(status);
+        queryDTO.setUserId(userId);
+        queryDTO.setPage(1);
+        queryDTO.setPageSize(1);
+        
+        Page<Orders> page = orderMapper.pageQuery(queryDTO);
+        if (page != null && !page.isEmpty()) {
+            return page.get(0);
+        }
+        
+        // 如果没找到订单，抛出异常
+        throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+    }
+    
+    // 重载方法，只按状态查找
+    private Orders findLatestOrder(Integer status) {
+        return findLatestOrder(status, null);
+    }
+    
+    // 重载方法，无条件查找
+    private Orders findLatestOrder() {
+        return findLatestOrder(null, null);
+    }
+    
     /**
      * 查询订单详情
      *
@@ -276,20 +297,10 @@ public class OrderServiceImpl implements OrderService {
         if (ordersConfirmDTO.getId() == null) {
             log.warn("订单ID为空，尝试查找最新的待接单订单");
             // 如果订单ID为空，尝试查找最新的待接单订单
-            OrdersPageQueryDTO queryDTO = new OrdersPageQueryDTO();
-            queryDTO.setStatus(Orders.TO_BE_CONFIRMED); // 待接单状态
-            queryDTO.setPage(1);
-            queryDTO.setPageSize(1);
-            
-            Page<Orders> page = orderMapper.pageQuery(queryDTO);
-            if (page != null && !page.isEmpty()) {
-                Orders latestOrder = page.get(0);
-                ordersConfirmDTO.setId(latestOrder.getId());
-                log.info("找到最新待接单订单，订单ID: {}", latestOrder.getId());
-            } else {
-                log.error("未找到待接单订单");
-                throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
-            }
+            // 注意：管理端操作通常由管理员执行，不应限制用户ID
+            Orders latestOrder = this.findLatestOrder(Orders.TO_BE_CONFIRMED);
+            ordersConfirmDTO.setId(latestOrder.getId());
+            log.info("找到最新待接单订单，订单ID: {}", latestOrder.getId());
         }
         
         Orders orders = Orders.builder()
