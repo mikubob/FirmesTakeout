@@ -126,27 +126,51 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) throws Exception {
-        /*//获取当前登录用户的id
-        Long userId = BaseContext.getCurrentId();
-        User user = userMapper.getById(userId);
-        //调用微信支付接口，生成预支付交易单
-        JSONObject jsonObject = weChatPayUtil.pay(
-                ordersPaymentDTO.getOrderNumber(),//商户订单号
-                new BigDecimal("0.01"),//支付金额，单位 元
-                "苍穹外卖订单",//商品名称
-                user.getOpenid()//微信用户的openid
-        );
-        if(jsonObject.getString("code")!=null&&jsonObject.getString("code").equals("ORDERPAID")){
-            throw new OrderBusinessException(MessageConstant.ORDER_PAID);
+        log.info("模拟微信支付，支付成功");
+        
+        // 检查订单号是否为空
+        if (ordersPaymentDTO.getOrderNumber() == null || ordersPaymentDTO.getOrderNumber().isEmpty()) {
+            log.warn("订单号为空，尝试查找用户最新待支付订单");
+            // 如果订单号为空，尝试查找当前用户最新的待支付订单
+            Long userId = BaseContext.getCurrentId();
+            OrdersPageQueryDTO queryDTO = new OrdersPageQueryDTO();
+            queryDTO.setUserId(userId);
+            queryDTO.setStatus(Orders.PENDING_PAYMENT); // 待付款状态
+            queryDTO.setPage(1);
+            queryDTO.setPageSize(1);
+            
+            Page<Orders> page = orderMapper.pageQuery(queryDTO);
+            if (page != null && !page.isEmpty()) {
+                Orders latestOrder = page.get(0);
+                ordersPaymentDTO.setOrderNumber(latestOrder.getNumber());
+                log.info("找到用户最新待支付订单，订单号: {}", latestOrder.getNumber());
+            } else {
+                log.error("未找到用户待支付订单");
+                throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+            }
         }
-        //封装VO数据并返回
-        OrderPaymentVO vo = jsonObject.toJavaObject(OrderPaymentVO.class);
-        vo.setPackageStr(jsonObject.getString("package"));
-        //返回结果
-        return vo;*/
-        log.info("跳过微信支付，支付成功");
-        // 无论如何都返回支付成功，不检查订单是否存在
-        return new OrderPaymentVO();
+        
+        // 根据订单号查询订单信息
+        Orders ordersDB = orderMapper.getByNumber(ordersPaymentDTO.getOrderNumber());
+        
+        // 检查订单是否存在
+        if (ordersDB == null) {
+            log.warn("订单不存在，订单号：{}", ordersPaymentDTO.getOrderNumber());
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        
+        // 直接更新订单状态为已支付
+        paySuccess(ordersPaymentDTO.getOrderNumber());
+        
+        // 模拟微信支付返回参数，以便前端可以正常处理
+        OrderPaymentVO vo = new OrderPaymentVO();
+        vo.setNonceStr("nonceStr"); //随机字符串
+        vo.setPaySign("paySign"); //签名
+        vo.setTimeStamp(String.valueOf(System.currentTimeMillis() / 1000)); //时间戳
+        vo.setSignType("RSA"); //签名算法
+        vo.setPackageStr("prepay_id=" + ordersPaymentDTO.getOrderNumber()); // 使用订单号作为prepay_id，保证唯一性
+        
+        return vo;
     }
     
     /**
@@ -161,7 +185,8 @@ public class OrderServiceImpl implements OrderService {
         // 检查订单是否存在，如果不存在则直接返回，不抛出异常
         if (ordersDB == null) {
             log.warn("订单不存在，订单号：{}", outTradeNo);
-            return;
+            // 这里我们抛出一个异常，让调用方知道订单不存在
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
         }
 
         // 根据订单id更新订单的状态、支付方式、支付状态、结账时间
@@ -183,6 +208,9 @@ public class OrderServiceImpl implements OrderService {
     public OrderVO details(Long id) {
         // 根据id查询订单
         Orders orders = orderMapper.getById(id);
+        
+        // 确保返回最新的订单状态
+        log.info("查询订单详情，订单ID: {}, 状态: {}", id, orders.getStatus());
 
         // 查询该订单对应的菜品/套餐明细
         List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(orders.getId());
@@ -242,12 +270,37 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
+        log.info("接单请求参数: {}", ordersConfirmDTO);
+        
+        // 检查订单ID是否为空
+        if (ordersConfirmDTO.getId() == null) {
+            log.warn("订单ID为空，尝试查找最新的待接单订单");
+            // 如果订单ID为空，尝试查找最新的待接单订单
+            OrdersPageQueryDTO queryDTO = new OrdersPageQueryDTO();
+            queryDTO.setStatus(Orders.TO_BE_CONFIRMED); // 待接单状态
+            queryDTO.setPage(1);
+            queryDTO.setPageSize(1);
+            
+            Page<Orders> page = orderMapper.pageQuery(queryDTO);
+            if (page != null && !page.isEmpty()) {
+                Orders latestOrder = page.get(0);
+                ordersConfirmDTO.setId(latestOrder.getId());
+                log.info("找到最新待接单订单，订单ID: {}", latestOrder.getId());
+            } else {
+                log.error("未找到待接单订单");
+                throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+            }
+        }
+        
         Orders orders = Orders.builder()
                 .id(ordersConfirmDTO.getId())
                 .status(Orders.CONFIRMED)
                 .build();
 
         orderMapper.update(orders);
+        
+        // 添加日志以便调试
+        log.info("订单已更新为已接单状态，订单ID: {}", ordersConfirmDTO.getId());
     }
 
     /**

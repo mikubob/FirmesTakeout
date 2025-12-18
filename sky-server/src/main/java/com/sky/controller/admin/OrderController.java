@@ -69,6 +69,7 @@ public class OrderController {
     public Result confirm(@RequestBody OrdersConfirmDTO ordersConfirmDTO){
         log.info("接单：{}", ordersConfirmDTO);
         orderService.confirm(ordersConfirmDTO);
+        log.info("订单已更新为已接单状态，订单ID: {}", ordersConfirmDTO.getId());
         return Result.success();
     }
 }

@@ -78,6 +78,7 @@ public class OrderController {
     public Result<OrderVO> details(@PathVariable("id") Long id) {
         log.info("查询订单详情：{}", id);
         OrderVO orderVO = orderService.details(id);
+        log.info("返回订单详情，订单ID: {}, 状态: {}", id, orderVO.getStatus());
         return Result.success(orderVO);
     }
 
