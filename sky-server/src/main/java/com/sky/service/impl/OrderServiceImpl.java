@@ -348,12 +348,7 @@ public class OrderServiceImpl implements OrderService {
             log.warn("订单不存在，订单ID：{}", ordersCancelDTO.getId());
             throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
         }
-        
-        // 检查订单状态是否允许取消
-        if (!this.isOrderCancelable(ordersDB)) {
-            log.warn("订单状态不允许取消，订单ID: {}，当前状态: {}", ordersDB.getId(), ordersDB.getStatus());
-            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
-        }
+
         
         //管理端取消订单需要退款，根据订单id更新订单状态，取消原因，取消时间
         Orders orders = Orders.builder()
@@ -397,6 +392,22 @@ public class OrderServiceImpl implements OrderService {
         Orders orders = Orders.builder()
                 .id(id)
                 .status(Orders.DELIVERY_IN_PROGRESS)
+                .build();
+        orderMapper.update(orders);
+    }
+
+    @Override
+    public void complete(Long id) {
+        //根据id查询订单
+        Orders ordersDB=orderMapper.getById(id);
+        //判断订单是否存在,订单状态判断是否为4
+        if(ordersDB==null||!ordersDB.getStatus().equals(Orders.DELIVERY_IN_PROGRESS)){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        Orders orders = Orders.builder()
+                .id(id)
+                .status(Orders.COMPLETED)
+                .deliveryTime(LocalDateTime.now())
                 .build();
         orderMapper.update(orders);
     }
