@@ -5,10 +5,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
-import com.sky.dto.OrdersConfirmDTO;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
@@ -188,39 +185,6 @@ public class OrderServiceImpl implements OrderService {
     }
     
     /**
-     * 查找最新的订单
-     * 
-     * @param status 订单状态 null表示不限制状态
-     * @param userId 用户ID null表示不限制用户
-     * @return 最新的订单
-     */
-    private Orders findLatestOrder(Integer status, Long userId) {
-        OrdersPageQueryDTO queryDTO = new OrdersPageQueryDTO();
-        queryDTO.setStatus(status);
-        queryDTO.setUserId(userId);
-        queryDTO.setPage(1);
-        queryDTO.setPageSize(1);
-        
-        Page<Orders> page = orderMapper.pageQuery(queryDTO);
-        if (page != null && !page.isEmpty()) {
-            return page.get(0);
-        }
-        
-        // 如果没找到订单，抛出异常
-        throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
-    }
-    
-    // 重载方法，只按状态查找
-    private Orders findLatestOrder(Integer status) {
-        return findLatestOrder(status, null);
-    }
-    
-    // 重载方法，无条件查找
-    private Orders findLatestOrder() {
-        return findLatestOrder(null, null);
-    }
-    
-    /**
      * 查询订单详情
      *
      * @param id
@@ -312,6 +276,129 @@ public class OrderServiceImpl implements OrderService {
         
         // 添加日志以便调试
         log.info("订单已更新为已接单状态，订单ID: {}", ordersConfirmDTO.getId());
+    }
+
+    /**
+     * 拒单
+     * @param ordersRejectionDTO
+     */
+    @Override
+    public void rejection(OrdersRejectionDTO ordersRejectionDTO) {
+        log.info("拒单请求参数: {}", ordersRejectionDTO);
+        // 检查订单ID是否为空
+        if (ordersRejectionDTO.getId() == null) {
+            log.warn("订单ID为空，尝试查找最新的待接单订单");
+            // 如果订单ID为空，尝试查找最新的待接单订单
+            Orders latestOrder = this.findLatestOrder(Orders.TO_BE_CONFIRMED);
+            ordersRejectionDTO.setId(latestOrder.getId());
+            log.info("找到最新待接单订单，订单ID: {}", latestOrder.getId());
+        }
+        // 订单只有存在且状态为2（待接单）才可以拒单
+        Orders ordersDB = orderMapper.getById(ordersRejectionDTO.getId());
+        if (ordersDB == null || !ordersDB.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+         /*
+        //支付状态
+        Integer payStatus = ordersDB.getPayStatus();
+        if (payStatus == Orders.PAID) {
+            //用户已支付，需要退款
+            String refund = weChatPayUtil.refund(
+                    ordersDB.getNumber(),
+                    ordersDB.getNumber(),
+                    new BigDecimal(0.01),
+                    new BigDecimal(0.01));
+            log.info("申请退款：{}", refund);
+        }
+        */
+
+        //拒单需要退款，根据订单id查询订单状态，拒单原因，取消时间
+        Orders orders = Orders.builder()
+                .id(ordersRejectionDTO.getId())
+                .status(Orders.CANCELLED)
+                .rejectionReason(ordersRejectionDTO.getRejectionReason())
+                .cancelTime(LocalDateTime.now())
+                .build();
+        orderMapper.update(orders);
+        //添加日志以便调试
+        log.info("订单已更新为拒单状态，订单ID: {}", ordersRejectionDTO.getId());
+    }
+
+    /**
+     * 商家取消订单
+     * @param ordersCancelDTO
+     */
+    @Override
+    public void cancel(OrdersCancelDTO ordersCancelDTO) throws Exception {
+        log.info("取消订单请求参数: {}", ordersCancelDTO);
+        
+        // 检查订单ID是否为空
+        if (ordersCancelDTO.getId() == null) {
+            // 如果订单ID为空，尝试查找最新的待处理订单
+            Orders latestOrder = this.findLatestOrder(null);
+            ordersCancelDTO.setId(latestOrder.getId());
+            log.info("找到最新待处理订单，订单ID: {}", latestOrder.getId());
+        }
+        
+        //根据id查询订单
+        Orders ordersDB = orderMapper.getById(ordersCancelDTO.getId());
+        
+        // 检查订单是否存在
+        if (ordersDB == null) {
+            log.warn("订单不存在，订单ID：{}", ordersCancelDTO.getId());
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        
+        // 检查订单状态是否允许取消
+        if (!this.isOrderCancelable(ordersDB)) {
+            log.warn("订单状态不允许取消，订单ID: {}，当前状态: {}", ordersDB.getId(), ordersDB.getStatus());
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        
+        //管理端取消订单需要退款，根据订单id更新订单状态，取消原因，取消时间
+        Orders orders = Orders.builder()
+                .id(ordersCancelDTO.getId())
+                .status(Orders.CANCELLED)
+                .cancelReason(ordersCancelDTO.getCancelReason())
+                .cancelTime(LocalDateTime.now())
+                .build();
+        
+        // 如果订单已支付，标记为需要退款
+        if (ordersDB.getPayStatus().equals(Orders.PAID)) {
+            orders.setPayStatus(Orders.REFUND);
+            log.info("订单已支付，标记为需要退款，订单ID: {}", ordersCancelDTO.getId());
+            /*
+            // 调用微信支付退款接口（在实际环境中启用）
+            weChatPayUtil.refund(
+                    ordersDB.getNumber(), // 商户订单号
+                    ordersDB.getNumber(), // 商户退款单号
+                    ordersDB.getAmount(), // 退款金额
+                    ordersDB.getAmount()   // 原订单金额
+            );
+            */
+        }
+        
+        orderMapper.update(orders);
+        log.info("订单已取消，订单ID: {}", ordersCancelDTO.getId());
+    }
+
+    /**
+     * 派送订单
+     * @param id
+     */
+    @Override
+    public void delivery(Long id) {
+        //根据id查询订单
+        Orders ordersDB=orderMapper.getById(id);
+        //判断订单是否存在,订单状态判断是否为3
+        if(ordersDB==null||!ordersDB.getStatus().equals(Orders.CONFIRMED)){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        Orders orders = Orders.builder()
+                .id(id)
+                .status(Orders.DELIVERY_IN_PROGRESS)
+                .build();
+        orderMapper.update(orders);
     }
 
     /**
@@ -447,5 +534,47 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
         //将每条订单菜品信息拼接为字符串
         return String.join("", orderDishList);
+    }
+    /**
+     * 查找最新的订单
+     *
+     * @param status 订单状态 null表示不限制状态
+     * @param userId 用户ID null表示不限制用户
+     * @return 最新的订单
+     */
+    private Orders findLatestOrder(Integer status, Long userId) {
+        OrdersPageQueryDTO queryDTO = new OrdersPageQueryDTO();
+        queryDTO.setStatus(status);
+        queryDTO.setUserId(userId);
+        queryDTO.setPage(1);
+        queryDTO.setPageSize(1);
+
+        Page<Orders> page = orderMapper.pageQuery(queryDTO);
+        if (page != null && !page.isEmpty()) {
+            return page.get(0);
+        }
+
+        // 如果没找到订单，抛出异常
+        throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+    }
+
+    // 重载方法，只按状态查找
+    private Orders findLatestOrder(Integer status) {
+        return findLatestOrder(status, null);
+    }
+
+    // 重载方法，无条件查找
+    private Orders findLatestOrder() {
+        return findLatestOrder(null, null);
+    }
+
+    /**
+     * 判断订单是否可以被取消
+     * @param orders 订单对象
+     * @return 是否可以取消
+     */
+    private boolean isOrderCancelable(Orders orders) {
+        // 订单状态为待付款、待接单、已接单时可以取消
+        return orders.getStatus() <= Orders.CONFIRMED && orders.getStatus() > 0;
     }
 }
