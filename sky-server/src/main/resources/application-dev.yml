@@ -21,3 +21,6 @@ sky:
   wechat:
     appid: ${WX_MINI_APPID}  # 引用系统环境变量WX_MINI_APPID
     secret: ${WX_MINI_SECRET} # 引用系统环境变量WX_MINI_SECRET
+
+  baidu:
+    ak: ${BAIDU_MAP_AK}

@@ -26,4 +26,8 @@ public class MessageConstant {
     public static final String ALREADY_EXISTS = "该账号已存在，请重新输入";
     public static final String ADDRESS_NOT_FOUND = "没有查询到默认地址";
     public static final String ORDER_PAID = "该订单已支付";
+    public static final String PARSE_ADDRESS_ERROR_SHOP = "店铺地址解析失败";
+    public static final String PARSE_ADDRESS_ERROR_USER = "收货地址解析失败";
+    public static final String ROUTE_PLANNING_FAILED = "配送路线规划失败";
+    public static final String OUT_OF_DELIVERY_RANGE = "超出配送范围";
 }
