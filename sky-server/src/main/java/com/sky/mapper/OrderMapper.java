@@ -2,8 +2,9 @@ package com.sky.mapper;
 
 import com.github.pagehelper.Page;
 import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.entity.Orders;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import com.sky.entity.Orders;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,17 +43,17 @@ public interface OrderMapper {
 
     /**
      * 根据状态统计订单数量
-     * @param toBeConfirmed
+     * @param status
      * @return
      */
-    Integer countStatus(Integer toBeConfirmed);
+    Integer countStatus(@Param("status") Integer status);
 
     /**
      * 根据状态和下单时间查询订单
      *
-     * @param pendingPayment
-     * @param time
+     * @param status
+     * @param orderTime
      * @return
      */
-    List<Orders> getByStatusAndOrdertimeLT(Integer pendingPayment, LocalDateTime time);
+    List<Orders> getByStatusAndOrdertimeLT(@Param("status") Integer status, @Param("orderTime") LocalDateTime orderTime);
 }
