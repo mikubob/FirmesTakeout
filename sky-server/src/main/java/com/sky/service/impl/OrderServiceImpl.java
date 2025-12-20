@@ -410,6 +410,10 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.update(orders);
     }
 
+    /**
+     * 完成订单
+     * @param id
+     */
     @Override
     public void complete(Long id) {
         //根据id查询订单
