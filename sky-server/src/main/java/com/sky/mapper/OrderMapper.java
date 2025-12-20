@@ -3,9 +3,10 @@ package com.sky.mapper;
 import com.github.pagehelper.Page;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Orders;
-import com.sky.vo.OrderVO;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Mapper
 public interface OrderMapper {
@@ -45,4 +46,13 @@ public interface OrderMapper {
      * @return
      */
     Integer countStatus(Integer toBeConfirmed);
+
+    /**
+     * 根据状态和下单时间查询订单
+     *
+     * @param pendingPayment
+     * @param time
+     * @return
+     */
+    List<Orders> getByStatusAndOrdertimeLT(Integer pendingPayment, LocalDateTime time);
 }

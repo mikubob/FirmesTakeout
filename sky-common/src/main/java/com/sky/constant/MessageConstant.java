@@ -30,4 +30,5 @@ public class MessageConstant {
     public static final String PARSE_ADDRESS_ERROR_USER = "收货地址解析失败";
     public static final String ROUTE_PLANNING_FAILED = "配送路线规划失败";
     public static final String OUT_OF_DELIVERY_RANGE = "超出配送范围";
+    public static final String PAYMENT_TIMEOUT = "支付超时，自动取消";
 }
