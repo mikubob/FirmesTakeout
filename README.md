@@ -120,20 +120,26 @@ cp sky-server/src/main/resources/application-dev.yml.example sky-server/src/main
 vim sky-server/src/main/resources/application-dev.yml
 ```
 
-4. 启动后端服务：
+4. 启动Redis服务：
+```bash
+# 确保Redis服务正在运行，或使用Docker启动
+docker run -d -p 6379:6379 --name redis redis:latest
+```
+
+5. 启动后端服务：
 ```bash
 cd sky-server
 mvn spring-boot:run
 ```
 
-5. 启动前端项目：
+6. 启动前端项目：
 ```bash
 # 前端项目通常在单独的仓库中
 npm install
 npm run dev
 ```
 
-6. 访问应用：
+7. 访问应用：
    - 管理端: http://localhost:8080
    - 用户端: http://localhost:8081
    - API文档: http://localhost:8080/doc.html
@@ -188,6 +194,8 @@ npm run dev
 2. 部分功能依赖第三方服务（如阿里云OSS、微信支付），需要配置相应密钥
 3. 开发过程中请遵循团队编码规范
 4. 数据库表结构变更时请及时更新相关文档
+5. 确保Redis服务正常运行，系统多个功能依赖Redis缓存
+6. 报表统计功能需要确保数据库查询参数正确绑定
 
 ## 贡献者
 
