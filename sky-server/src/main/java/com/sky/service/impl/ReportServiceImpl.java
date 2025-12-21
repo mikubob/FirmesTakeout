@@ -5,15 +5,21 @@ import com.sky.entity.Orders;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
-import com.sky.vo.OrderReportVO;
-import com.sky.vo.SalesTop10ReportVO;
-import com.sky.vo.TurnoverReportVO;
-import com.sky.vo.UserReportVO;
+import com.sky.service.WorkspaceService;
+import com.sky.vo.*;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.util.StringUtil;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -29,6 +35,8 @@ public class ReportServiceImpl implements ReportService {
     private OrderMapper orderMapper;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private WorkspaceService workspaceService;
 
     /**
      * 根据时间区间统计营业额数据
@@ -173,6 +181,91 @@ public class ReportServiceImpl implements ReportService {
                 .nameList(nameList)
                 .numberList(numberList)
                 .build();
+    }
+
+    /**
+     * 导出近三十天的营业额数据
+     * @param response
+     */
+    @Override
+    public void exportBusinessData(HttpServletResponse response) throws IOException {
+        LocalDate begin = LocalDate.now().minusDays(30);
+        LocalDate end = LocalDate.now().minusDays(1);
+        //查询概览运营数据，提供给Excel模板文件
+        BusinessDataVO businessData = workspaceService.getBusinessData(LocalDateTime.of(begin,LocalTime.MIN), LocalDateTime.of(end, LocalTime.MAX));
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("template/运营数据报表模板.xlsx");
+        
+        // 添加详细的错误信息，帮助定位问题
+        if (inputStream == null) {
+            throw new IOException("无法找到Excel模板文件: template/运营数据报表模板.xlsx，请确认文件是否存在！" +
+                                "请在sky-server/src/main/resources/template/目录下放置名为'运营数据报表模板.xlsx'的Excel模板文件。");
+        }
+        
+        //基于提供好的模板文件创建一个Excel表格对象
+        XSSFWorkbook excel = new XSSFWorkbook(inputStream);
+        //获取Excel文件中第一个sheet页
+        XSSFSheet sheet = excel.getSheet("Sheet1");
+        
+        //设置报表标题和时间范围
+        XSSFRow titleRow = sheet.getRow(1);
+        titleRow.getCell(1).setCellValue("运营数据统计报表(" + begin + "至" + end + ")");
+        
+        //填充汇总数据
+        XSSFRow summaryRow = sheet.getRow(3);
+        
+        //设置汇总行标题
+        summaryRow.getCell(1).setCellValue("总营业额(元)");
+        summaryRow.getCell(3).setCellValue("订单完成率(%)");
+        summaryRow.getCell(5).setCellValue("新增用户数");
+        
+        //填充汇总数据值
+        summaryRow.getCell(2).setCellValue(businessData.getTurnover());
+        summaryRow.getCell(4).setCellValue(businessData.getOrderCompletionRate() * 100); //转换为百分比
+        summaryRow.getCell(6).setCellValue(businessData.getNewUsers());
+        
+        //创建表头行
+        XSSFRow headerRow = sheet.getRow(5);
+        
+        //设置各列标题
+        String[] headers = {"日期", "营业额(元)", "有效订单数", "订单完成率(%)", "平均客单价(元)", "新增用户数"};
+        for (int i = 0; i < headers.length; i++) {
+            headerRow.getCell(i + 1).setCellValue(headers[i]);
+        }
+        
+        //填充详细数据
+        for (int i = 0; i < 30; i++) {
+            LocalDate date = begin.plusDays(i);
+            //准备明细数据
+            businessData = workspaceService.getBusinessData(LocalDateTime.of(date, LocalTime.MIN), LocalDateTime.of(date, LocalTime.MAX));
+            
+            XSSFRow detailRow = sheet.getRow(6 + i);
+            
+            // 日期
+            detailRow.getCell(1).setCellValue(date.toString());
+            
+            // 营业额
+            detailRow.getCell(2).setCellValue(businessData.getTurnover());
+            
+            // 有效订单数
+            detailRow.getCell(3).setCellValue(businessData.getValidOrderCount());
+            
+            // 订单完成率
+            detailRow.getCell(4).setCellValue(businessData.getOrderCompletionRate() * 100); //转换为百分比
+            
+            // 平均客单价
+            detailRow.getCell(5).setCellValue(businessData.getUnitPrice());
+            
+            // 新用户数
+            detailRow.getCell(6).setCellValue(businessData.getNewUsers());
+        }
+        
+        //通过输出流将文件下载到客户端浏览器中
+        ServletOutputStream out = response.getOutputStream();
+        excel.write(out);
+        //关闭资源
+        out.flush();
+        out.close();
+        excel.close();
     }
 
     /**
