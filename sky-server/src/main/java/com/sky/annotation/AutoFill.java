@@ -10,8 +10,8 @@ import java.lang.annotation.Target;
 /**
  * 自定义注解，用于标识某个方法需要进行功能字段的自动填充处理
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)//方法级别
+@Retention(RetentionPolicy.RUNTIME)//运行时
 public @interface AutoFill {
     //数据库操作系统： UPDATE,INSERT
     OperationType value();
